@@ -3,11 +3,12 @@ This respository has quite poor code. Please do **NOT** copy it. However, feel f
 
 ![Website image](pics/full.jpg)
 
-### Ticket selection page
+
+## Ticket selection page
 
 ![Tickets section](pics/tickets.png)
 
-### Installation
+## Installation
  * Install [python](https://www.python.org) and [pip](https://pip.pypa.io/en/stable/installing/)
  * Install virtualenv with `pip install virtualenv`
  * Clone the repository with `git clone https://github.com/TheAvidDev/eventix-site/`
