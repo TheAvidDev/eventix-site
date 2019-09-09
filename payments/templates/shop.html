@@ -1,0 +1,223 @@
+{% include 'header.html' %}
+{% load for_number %}
+
+{% csrf_token %}
+<script>
+  var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+  function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+  $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+      }
+    }
+  });
+
+  $(document).on('click','.checkout_button', function (e) {
+
+    toastr.options = {
+    "closeButton": false,
+    "debug": false,
+    "newestOnTop": true,
+    "progressBar": false,
+    "positionClass": "toast-top-right",
+    "preventDuplicates": false,
+    "onclick": null,
+    "showDuration": "300",
+    "hideDuration": "1000",
+    "timeOut": "3000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut"
+  }
+  toastr["success"]("Item added to cart!","Success");
+
+  if ($(this).hasClass('checkout_button_complex')) {
+    var pk = $(this)[0].id;
+    var sizes = [];
+    $('select option:selected').each(function() {
+      var c = 'checkout_id_'+pk;
+      if ($(this).hasClass(c)) {
+        var s = $(this)[0].parentNode.parentElement.previousSibling.childNodes[0].data;
+        var q = parseInt($(this).text());
+        sizes.push({'size':s,'quantity':q});
+      }
+    })
+    data = {
+      'type':'complex',
+      'pk':pk,
+      'sizes':sizes,
+    };
+    console.log(data)
+    $.ajax({
+      type: "POST",
+      url: '/ajax/add_cart_simple/',
+      dataType: "json",
+      data: data,
+    })
+  } else {
+    $.ajax({
+      type: "POST",
+      url: '/ajax/add_cart_simple/',
+      dataType: "json",
+      data: {
+        'type':'simple',
+        'pk': $(this)[0].id,
+      },
+    })
+  }
+});
+
+function calculateTotalSum() {
+  var sum = 0;
+  $(".option-price").each(function(){
+    var value = $(this)[0].childNodes[0].childNodes[0].data;
+    sum += parseFloat(value.substr(1));
+  })
+
+  $('#total-price').text(sum.toFixed(2));
+}
+
+function calculateTotalCount() {
+  var sum = 0;
+  $("select option:selected").each(function() {
+    var value = $(this).text();
+    sum += parseInt(value);
+  })
+  $('#total-quantity').text(sum);
+};
+
+jQuery(function ($) {
+  $('.option').click(function () {
+    $(this)[0].parentNode.parentNode.parentNode.childNodes[4].childNodes[0].childNodes[0].data ='$' + ($(this)[0].id * $(this)[0].index).toFixed(2)
+
+    calculateTotalSum();
+    calculateTotalCount();
+  })
+
+
+});
+jQuery(function ($) {
+  $("button").click(function () {
+    $("select option:selected").each(function () {
+      $(this)[0].parentNode.parentNode.parentNode.childNodes[4].childNodes[0].childNodes[0].data ='$' + ($(this)[0].id * $(this)[0].index).toFixed(2)
+    })
+    calculateTotalSum();
+    calculateTotalCount();
+  })
+});
+</script>
+
+<section class="services1 cid-roouq7P20E" id="services1-q">
+  <div class="container ">
+    <div class="row ">
+
+    </div>
+    <div class="row justify-content-center">
+      <div class="title pb-5 col-12">
+        <h2 class="align-left pb-3 mbr-fonts-style display-1 toast-top-right">
+          {{products.all.0.event.name}} Shop
+        </h2>
+      </div>
+      {% for product in extra_tickets %}
+      <div class="card col-12 col-md-6 col-lg-4">
+        <div class="card-wrapper">
+          <div class="card-img">
+            <img src="{% if product.image %}
+            {{ product.image.url }}
+            {% endif %}" alt="Mobirise">
+          </div>
+          <div class="card-box pb-md-5">
+            <h4 class="card-title mbr-fonts-style display-5">
+              {{product.name}}
+            </h4>
+            <p class="mbr-text mbr-fonts-style display-7">
+              {{product.description}}
+            </p>
+            <div class="mbr-section-btn align-left">
+              <a class="btn btn-warning-outline display-4 checkout_button" id="{{ product.pk }}">
+                $ {{product.price}}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% for product in apparels %}
+      <div class="card col-12 col-md-6 col-lg-4">
+        <div class="card-wrapper">
+          <div class="card-img">
+            <img src="{% if product.image %}
+            {{ product.image.url }}
+            {% endif %}">
+          </div>
+          <div class="card-box pb-md-5">
+            <h4 class="card-title mbr-fonts-style display-5">
+              {{product.name}}
+            </h4>
+            <p class="mbr-text mbr-fonts-style display-7">
+              {{product.description}}
+            </p>
+            <div class="mbr-section-btn align-left">
+              <button type="button" class="btn btn-warning-outline display-4" data-target="#extra{{ product.pk }}" data-toggle="modal">$ {{product.price}}</button>
+            </div>
+
+            <div class="modal fade" id="extra{{ product.pk }}">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h4 class="modal-title" style="padding:0">{{product}}</h4>
+
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  <div class="modal-body">
+
+
+                    <table class="table table-hover">
+                      <thead>
+                        <tr class="bg-warning">
+                          <th scope="col">Size</th>
+                          <th scope="col" style="max-width:50;">Quantity</th>
+                          <th scope="col" style="max-width:50;">Cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for size in product.sizes.all %}
+                        <tr>
+                          <th scope="row">{{size.size}}<br>
+                            <td class="quantity">
+                              <select class="form-control" id="quantity_{{size.pk}}">
+                                <option class="option checkout_id_{{product.pk}}" id="{{product.price}}">0</option>
+                                {% for i in size.stock|to_range %}
+                                <option class="option checkout_id_{{product.pk}}" id="{{product.price}}" >{{forloop.counter}}</option>
+                                {% endfor %}
+                              </select>
+                            </td>
+                            <td class="price float-left option-price"><center>$0.00</center></td>
+                          </tr>
+                          {% endfor %}
+                          <tr class="bg-warning">
+                            <th scope="row">
+                              <button id="{{product.pk}}" type="submit" class="btn btn-warning-outline text-left checkout_button checkout_button_complex" style="margin:0; padding:10px 10px;">Add to Cart</button>
+                              <td><b>Total:</b><br><b id="total-quantity">0</b></td>
+                              <td><b>Total:</b><br>$<b id="total-price">0.00</b></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% include 'footer.html' %}

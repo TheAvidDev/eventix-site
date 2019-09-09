@@ -1,0 +1,74 @@
+{% include "header.html" %}
+
+<div class="jumbotron" style="margin-bottom:0px; padding-top:150px; padding-bottom:500px">
+  <div class="container" style="max-width:750px">
+    {% if type == "success" %}
+    <table class="table table-hover">
+      <thead>
+        <tr style="background-color:#87999A; color:#FFFFFF">
+          <th scope="col">Tickets</th>
+          <th scope="col" style="width:50;">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+        <tr>
+          <th scope="row"> {{ticket.get_name}} <br>
+            <td>${{ticket.get_price}}</td>
+          </tr>
+          {% endfor %}
+          <tr style="background-color:#F7BF65">
+            <th scope="row"> <b>Service Fee</b><br>
+              <td>${{fee}}</td>
+            </tr>
+<tr  style="background-color:#258CD1; color:#FFFFFF">
+            <th scope="row"> <b>Total</b><br>
+              <td>${{total}}</td>
+            </tr>
+          </tbody>
+        </table>
+        {% endif %}
+        {% if type == "success" %}
+        <div class="card text-white bg-primary mb-3">
+          <div class="card-body">
+            <h4 class="card-title">Thank you for your purchase!</h4>
+            <p class="card-text">Please check your email for your records. You can pickup your tickets at the venue.</p>
+            <p class="card-text">Your confirmation id is: [<i>{{id|escape}}</i>]</p>
+          </div>
+        </div>
+        {% endif %}
+        {% if type == "fail" %}
+        <div class="card text-white bg-warning mb-3">
+          <div class="card-body">
+            <h4 class="card-title">The tickets you selected are no longer available.</h4>
+            <p class="card-text">Please click <a style="color:#3498DB" href="{% url 'events' %}">here</a> to re-select your tickets. <b>You have not been charged.</b></p>
+          </div>
+        </div>
+        {% endif %}
+        {% if type == "errorslow" %}
+        <div class="card text-white bg-info mb-3">
+          <div class="card-body">
+            <h4 class="card-title">An internal server error occurred.</h4>
+            <p class="card-text">Please wait a bit before trying again. <b>You have not been charged.</b></p>
+          </div>
+        </div>
+        {% endif %}
+        {% if type == "error" %}
+        <div class="card text-white bg-info mb-3">
+          <div class="card-body">
+            <h4 class="card-title">An internal server error occurred.</h4>
+            <p class="card-text">Please click <a class="h5" style="color:white" href="{% url 'events' %}"><b>here</b></a> to re-select your tickets. <b>You have not been charged.</b></p>
+          </div>
+        </div>
+        {% endif %}
+        {% if type == "carderror" %}
+        <div class="card text-white bg-danger mb-3">
+          <div class="card-body">
+            <h4 class="card-title">Your card was declined.</h4>
+            <p class="card-text">Attempting to checkout with a different card may solve this issue. Please click <a class="h5" style="color:white" href="/tickets/"><b>here</b></a> to re-select your tickets. <b>You have not been charged.</b> </p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% include 'footer.html' %}

@@ -1,0 +1,145 @@
+{% include "header.html" %}
+<style>
+  .row {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+    margin-left: 0px;
+    vertical-align: middle;
+    padding-bottom:5px;
+
+  }
+</style>
+
+<div class="jumbotron" style="margin-bottom:0;">
+  <div class="container" style="padding-top:50px; max-width:750px">
+    <table class="table table-hover">
+      <thead>
+        <tr style="background-color:#87999A; color:#FFFFFF">
+          <th scope="col">Tickets</th>
+          <th scope="col" style="width:50;">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+        <tr>
+          <th scope="row"> {{ticket.get_name}} <br>
+            <td>${{ticket.get_price}}</td>
+          </tr>
+          {% endfor %}
+          <tr  style="background-color:#F7BF65">
+            <th scope="row"> <b>Service Fee</b><br>
+              <td>${{fee}}</td>
+            </tr>
+          <tr style="background-color:#258CD1; color:#FFFFFF">
+            <th scope="row"> <b>Total</b><br>
+              <td>${{total}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <form action="{% url 'charge' %}" method="post" id="payment-form">
+          {% csrf_token %}
+          <div class="row">
+            <input name="name" id="name" type="text" placeholder="Full Name" required autocomplete="name" style="color:#258CD1; width:98%; padding-top:8px; padding-left:10px; padding-right:10px">
+          </div>
+          <div class="row">
+            <input name="email" id="email" type="email" placeholder="Email" required autocomplete="email" style="color:#258CD1; width:98%; padding-top:8px; padding-left:10px; padding-right:10px">
+          </div>
+          <div class="row">
+            <div id="card-element" style="width:98%; padding-top:8px; padding-left:10px; padding-right:10px" required>
+            </div>
+            <div id="card-errors" role="alert" style="color:#E85748"></div>
+          </div>
+          <br>
+          <div class="row">
+            <input type="submit" class="submit btn btn-primary" value="Pay" style="width:100%; padding-top:8px; margin-left:0">
+          </div>
+        </form>
+	<br>
+	<div class="row">
+	    <h5><b>Tickets can be picked up at the venue.</b></h5>
+	</div>
+	<br>
+	<div class="row">
+	    <h6><b>Terms and Conditions:</b> All sales are final, no exchanges or refunds unless the show is cancelled. If a show is cancelled you will be refunded the price of your purchase. You will recieve the refund by email through our payment provider (Stripe). Please check your email for a receipt after checking out and bring a piece of photo identifcation to the venue to pickup your tickets.</h6>
+	    <h6><b>Please also read our Privacy Policy.</b></h6>
+	</div>
+      </div>
+    </div>
+
+    <script>
+      var stripe = Stripe('{{ key }}');
+      var elements = stripe.elements();
+      var card = elements.create('card', {
+        iconStyle: 'solid',
+        style: {
+          base: {
+            iconColor: '#9ED7F5',
+            color: '#000',
+            fontWeight: 500,
+            fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
+            fontSize: '16px',
+            fontSmoothing: 'antialiased',
+
+            ':-webkit-autofill': {
+              color: '#fce883',
+            },
+            '::placeholder': {
+              color: '#9ED7F5',
+            },
+          },
+          invalid: {
+            iconColor: '#E74C3C',
+            color: '#E74C3C',
+          },
+        },
+      });
+
+      // Add an instance of the card UI component into the `card-element` <div>
+      card.mount('#card-element');
+
+      card.addEventListener('change', function(event) {
+        var displayError = document.getElementById('card-errors');
+        if (event.error) {
+          displayError.textContent = event.error.message;
+        } else {
+          displayError.textContent = '';
+        }
+      });
+
+      function stripeTokenHandler(token) {
+        // Insert the token ID into the form so it gets submitted to the server
+        var form = document.getElementById('payment-form');
+        var hiddenInput = document.createElement('input');
+        hiddenInput.setAttribute('type', 'hidden');
+        hiddenInput.setAttribute('name', 'stripeToken');
+        hiddenInput.setAttribute('value', token.id);
+        form.appendChild(hiddenInput);
+
+        // Submit the form
+        form.submit();
+      }
+
+      function createToken() {
+        stripe.createToken(card).then(function(result) {
+          if (result.error) {
+            // Inform the user if there was an error
+            var errorElement = document.getElementById('card-errors');
+            errorElement.textContent = result.error.message;
+          } else {
+            // Send the token to your server
+            stripeTokenHandler(result.token);
+          }
+        });
+      };
+
+      // Create a token when the form is submitted.
+      var form = document.getElementById('payment-form');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        createToken();
+      });
+    </script>
+    {% include 'footer.html' %}
