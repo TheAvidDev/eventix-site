@@ -53,6 +53,8 @@ coverage.xml
 
 # Django stuff:
 *.log
+migrations/
+media/
 local_settings.py
 db.sqlite3
 
